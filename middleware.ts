@@ -1,41 +1,41 @@
-import { clerkMiddleware } from "@clerk/nextjs/server"
+import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
 
-// Routes that are publicly accessible
+// Define routes
 const publicRoutes = [
   "/",
   "/events/:id",
   "/api/webhook/clerk",
   "/api/webhook/stripe",
   "/api/uploadthing",
-]
+];
 
-// Routes completely ignored by middleware
 const ignoredRoutes = [
   "/api/webhook/clerk",
   "/api/webhook/stripe",
   "/api/uploadthing",
-]
+];
 
-const protectedPattern =
-  "/((?!_next|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest)).*)"
-const apiPattern = "/(api|trpc)(.*)"
+// Helpers
+const isPublicRoute = createRouteMatcher(publicRoutes);
+const isIgnoredRoute = createRouteMatcher(ignoredRoutes);
 
-// ❌ Don't use `.map` directly inside config
-// ✅ Precompute a plain array
-const excludedRoutes = [
-  "!/",
-  "!/events/:id",
-  "!/api/webhook/clerk",
-  "!/api/webhook/stripe",
-  "!/api/uploadthing",
-]
+// Clerk middleware
+export default clerkMiddleware((auth, req) => {
+  // Skip ignored routes
+  if (isIgnoredRoute(req)) return;
 
-// ✅ Fully static array
-const matcher = [protectedPattern, apiPattern].concat(excludedRoutes)
+  // Allow public routes
+  if (isPublicRoute(req)) return;
 
-export default clerkMiddleware()
+  // ✅ Everything else requires auth
+  auth().protect();
+});
 
-// ✅ Config is now pure JSON-like data
+// Config (must be static)
 export const config = {
-  matcher,
-}
+  matcher: [
+    "/((?!.+\\.[\\w]+$|_next).*)", // all routes except static files
+    "/",
+    "/(api|trpc)(.*)",             // api + trpc
+  ],
+};
