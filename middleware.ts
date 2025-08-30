@@ -16,21 +16,26 @@ const ignoredRoutes = [
   "/api/uploadthing",
 ]
 
-// Manually define matcher instead of calling a function at export
 const protectedPattern =
   "/((?!_next|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest)).*)"
 const apiPattern = "/(api|trpc)(.*)"
-const excludedRoutes = [...publicRoutes, ...ignoredRoutes].map(
-  (route) => `!${route}`
-)
 
-// ✅ Pure static value
-const matcher = [protectedPattern, apiPattern, ...excludedRoutes]
+// ❌ Don't use `.map` directly inside config
+// ✅ Precompute a plain array
+const excludedRoutes = [
+  "!/",
+  "!/events/:id",
+  "!/api/webhook/clerk",
+  "!/api/webhook/stripe",
+  "!/api/uploadthing",
+]
 
-// Export Clerk middleware
+// ✅ Fully static array
+const matcher = [protectedPattern, apiPattern].concat(excludedRoutes)
+
 export default clerkMiddleware()
 
-// ✅ Config must be static
+// ✅ Config is now pure JSON-like data
 export const config = {
   matcher,
 }
