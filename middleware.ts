@@ -1,4 +1,4 @@
-import { clerkMiddleware } from "@clerk/nextjs/server";
+import { clerkMiddleware } from "@clerk/nextjs/server"
 
 // Routes that are publicly accessible
 const publicRoutes = [
@@ -7,36 +7,30 @@ const publicRoutes = [
   "/api/webhook/clerk",
   "/api/webhook/stripe",
   "/api/uploadthing",
-];
+]
 
 // Routes completely ignored by middleware
 const ignoredRoutes = [
   "/api/webhook/clerk",
   "/api/webhook/stripe",
   "/api/uploadthing",
-];
+]
 
-// Helper to generate matcher patterns
-const generateMatcher = () => {
-  const protectedPattern =
-    "/((?!_next|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest)).*)";
-  const apiPattern = "/(api|trpc)(.*)";
+// Manually define matcher instead of calling a function at export
+const protectedPattern =
+  "/((?!_next|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest)).*)"
+const apiPattern = "/(api|trpc)(.*)"
+const excludedRoutes = [...publicRoutes, ...ignoredRoutes].map(
+  (route) => `!${route}`
+)
 
-  // Exclude both public and ignored routes
-  const excludedRoutes = [...publicRoutes, ...ignoredRoutes].map(
-    (route) => `!${route}`
-  );
-
-  return [protectedPattern, apiPattern, ...excludedRoutes];
-};
-
-// Compute matcher once
-const matcher = generateMatcher();
+// ✅ Pure static value
+const matcher = [protectedPattern, apiPattern, ...excludedRoutes]
 
 // Export Clerk middleware
-export default clerkMiddleware();
+export default clerkMiddleware()
 
-// ✅ Static config export
+// ✅ Config must be static
 export const config = {
   matcher,
-};
+}
