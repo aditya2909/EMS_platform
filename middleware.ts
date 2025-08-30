@@ -30,10 +30,13 @@ const generateMatcher = () => {
   return [protectedPattern, apiPattern, ...excludedRoutes];
 };
 
+// Compute matcher once
+const matcher = generateMatcher();
+
 // Export Clerk middleware
 export default clerkMiddleware();
 
-// Dynamic config
+// ✅ Static config export
 export const config = {
-  matcher: generateMatcher(),
+  matcher,
 };
